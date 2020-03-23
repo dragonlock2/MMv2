@@ -1,10 +1,9 @@
 #include "QuadEnc.h"
 
-QuadEnc::QuadEnc(PinName a, PinName b, Timer *tim, bool reverse, us_timestamp_t timeout_us) :
+QuadEnc::QuadEnc(PinName a, PinName b, Timer *tim, bool reverse) :
     a(reverse ? b : a),
     b(reverse ? a : b),
-    tim(tim),
-    timeout_us(timeout_us)
+    tim(tim)
 {}
 
 void QuadEnc::setup() {
@@ -15,65 +14,29 @@ void QuadEnc::setup() {
     // b.fall(callback(this, &QuadEnc::bFall));
 
     count = 0;
+    velocity = 0;
     prevTime = tim->read_high_resolution_us();
+    prevCount = 0;
 }
 
-float QuadEnc::velocity() {
-    if (currTime < tim->read_high_resolution_us() - timeout_us) {
-        return 0;
-    } else {
-        if (reverse) {
-            return -UNITS_PER_SECOND / (currTime - prevTime);
-        } else {
-            return UNITS_PER_SECOND / (currTime - prevTime);
-        }
-    }
+void QuadEnc::updateVelocity() {
+    velocity = UNITS_PER_SECOND * (count - prevCount) / (tim->read_high_resolution_us() - prevTime);
+    prevTime = tim->read_high_resolution_us();
+    prevCount = count;
 }
 
 void QuadEnc::aRise() {
-    if (b.read()) {
-        count--;
-        reverse = true;
-    } else {
-        count++;
-        reverse = false;
-    }
-    prevTime = currTime;
-    currTime = tim->read_high_resolution_us();
+    count += b.read() ? -1 : 1;
 }
 
 void QuadEnc::aFall() {
-    if (b.read()) {
-        count++;
-        reverse = false;
-    } else {
-        count--;
-        reverse = true;
-    }
-    prevTime = currTime;
-    currTime = tim->read_high_resolution_us();
+    count += b.read() ? 1 : -1;
 }
 
 void QuadEnc::bRise() {
-    if (a.read()) {
-        count++;
-        reverse = false;
-    } else {
-        count--;
-        reverse = true;
-    }
-    prevTime = currTime;
-    currTime = tim->read_high_resolution_us();
+    count += a.read() ? 1 : -1;
 }
 
 void QuadEnc::bFall() {
-    if (a.read()) {
-        count--;
-        reverse = true;
-    } else {
-        count++;
-        reverse = false;
-    }
-    prevTime = currTime;
-    currTime = tim->read_high_resolution_us();
+    count += a.read() ? -1 : 1;
 }

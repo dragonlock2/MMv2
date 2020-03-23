@@ -32,6 +32,9 @@ void Motor::pidLoop() {
             leftmot->brake(1);
             rightmot->brake(1);
         } else {
+            leftenc->updateVelocity();
+            rightenc->updateVelocity();
+
             linear_err = _linearTarget - getLinearVelocity();
             linear_integral += linear_err;
             linear_integral = constrainAbs(linear_integral, linear_ki_constr);
@@ -85,11 +88,11 @@ void Motor::setAngularIntegralConstraint(float ki_constr) {
 }
 
 float Motor::getLinearVelocity() {
-    return (ticksToMM(leftenc->velocity()) + ticksToMM(rightenc->velocity())) / 2;
+    return (ticksToMM(leftenc->velocity) + ticksToMM(rightenc->velocity)) / 2;
 }
 
 float Motor::getAngularVelocity() {
-    return (ticksToMM(rightenc->velocity()) - ticksToMM(leftenc->velocity())) / MOUSE_DIAMETER;
+    return (ticksToMM(rightenc->velocity) - ticksToMM(leftenc->velocity)) / MOUSE_DIAMETER;
 }
 
 float Motor::ticksToMM(float ticks) {

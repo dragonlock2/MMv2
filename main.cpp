@@ -57,54 +57,32 @@ int main()
 
     // Output Setup
     motor.init(5); // ~200Hz PID
-    motor.setLinearPID(0.04, 0.01, 0.001);
-    motor.setLinearIntegralConstraint(100);
-    motor.setAngularPID(0.5, 0.1, 0.01);
-    motor.setAngularIntegralConstraint(5);
+    motor.setLinearPID(0.005, 0.005, 0.0);
+    motor.setLinearIntegralConstraint(200);
+    motor.setAngularPID(0.1, 0.1, 0.0); // 0.1
+    motor.setAngularIntegralConstraint(10);
 
-    Karel karel(&left, &center, &right, &left_ir, &right_ir, &motor, 980, 20);
+    Karel karel(&left, &center, &right, &left_ir, &right_ir, &motor, 1000, 24);
 
     // Test
-    // motor.move(980, 0);
-
-    char data[3];
-    data[0] = 0x6A; // USER_CTRL
-    data[1] = 0x00; // disable master i2c
-    i2c.write(0x68 << 1, data, 2);
-
-    data[0] = 0x37; // INT_PIN_CFG
-    data[1] = 0x02; // enable bypass to access ak8963
-    i2c.write(0x68 << 1, data, 2);
-
-    data[0] = 0x0A; // CTRL1 register
-    data[1] = 0b00010110; // 100Hz, 16-bit output
-    i2c.write(0x0C << 1, data, 2);
-
-    int16_t mags[4]; // x,y,z, trash (for st2)
+    // motor.move(1000, 0);
+    // motor.move(0, 24);
 
     while (true) {
-        // pc.printf("%d %f %d %f\n", leftenc.count, leftenc.velocity(), rightenc.count, rightenc.velocity());
+        // leftenc.updateVelocity();
+        // rightenc.updateVelocity();
+
+        // pc.printf("%d %f %d %f\n", leftenc.count, leftenc.velocity, rightenc.count, rightenc.velocity;
         // pc.printf("%d %d %d\n", left.dist, center.dist, right.dist);
         // pc.printf("%d %d\n", left_ir.reading, right_ir.reading);
 
-        // pc.printf("%d %f %d %f %d %d %d %d %d\n", leftenc.count, leftenc.velocity(), rightenc.count, rightenc.velocity(), 
+        // pc.printf("%d %f %d %f %d %d %d %d %d\n", leftenc.count, leftenc.velocity, rightenc.count, rightenc.velocity, 
         //     left.dist, center.dist, right.dist, 
         //     left_ir.reading, right_ir.reading);
 
         // pc.printf("%f %f\n", motor.getLinearVelocity(), motor.getAngularVelocity() * 100);
 
-        // karel.wallFollowLeft();
-
-        data[0] = 0x02;
-        i2c.write(0x0C << 1, data, 1);
-        i2c.read(0x0C << 1, data, 1);
-        if (data[0]) {
-            data[0] = 0x03;
-            i2c.write(0x0C << 1, data, 1);
-            i2c.read(0x0C << 1, (char *) mags, 7);
-        }
-
-        pc.printf("%d, %d, %d\n", mags[0], mags[1], mags[2]);
+        karel.wallFollowLeft();
 
         ThisThread::sleep_for(20);
     }
